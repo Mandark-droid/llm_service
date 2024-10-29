@@ -1,0 +1,7 @@
+transformers
+datasets
+gitpython
+fastapi
+uvicorn
+torch
+requests
