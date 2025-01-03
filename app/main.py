@@ -10,7 +10,8 @@ git_urls = [
     "https://github.com/Kotak-Neo/kotak-neo-api.git",
     "https://github.com/iterativv/NostalgiaForInfinity.git",
     "https://github.com/freqtrade/freqtrade.git",
-    "https://github.com/zerodha/pykiteconnect.git"
+    "https://github.com/zerodha/pykiteconnect.git",
+    "https://github.com/upstox/upstox-python.git"
 ] # Add more repositories as needed
 
 clone_dir = "repo"  # Specify your clone directory here
@@ -25,8 +26,8 @@ class CodeRequest(BaseModel):
 def startup_event():
     # Clone the repository if needed (uncomment when ready)
     clone_repos(git_urls)
-    code_snippets = extract_code_files()
-    data_pairs = create_prompt_response_pairs(code_snippets)
+    code_snippets =  extract_code_files()
+    data_pairs =  create_prompt_response_pairs(code_snippets)
 
     # Log the data pairs for debugging
     print(data_pairs)
@@ -53,7 +54,7 @@ async def generate_code(request: CodeRequest):  # Change to accept a CodeRequest
     try:
         # Generate code using the prompt
         #generated_code = llm_service.generate_code(request.prompt)
-        generated_code = llm_service.generate_code(request.prompt, temperature=0.8, top_k=40)
+        generated_code = llm_service.generate_code(request.prompt, max_length=1024, temperature=0.8, top_k=40)
 
         return {"generated_code": generated_code}
     except Exception as e:

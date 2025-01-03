@@ -2,12 +2,16 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingA
 from datasets import Dataset
 from torch.utils.data import DataLoader
 import re
+import torch
+# Set the number of threads to limit CPU usage
+torch.set_num_threads(1)  # Adjust the number as needed
 
 class LLMService:
-    def __init__(self, model_name="gpt2"):
+    #def __init__(self, model_name="deepseek-ai/deepseek-coder-6.7b-base"):  ## gpt2
+    def __init__(self, model_name="gpt2"):  ## gpt2
         # Initialize model and tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForCausalLM.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True, device_map="sequential", torch_dtype=torch.bfloat16,  attn_implementation="eager")
 
         # Set the padding token to be the same as the EOS token
         if self.tokenizer.pad_token is None:
@@ -56,7 +60,10 @@ class LLMService:
         # Set up training arguments
         training_args = TrainingArguments(
             output_dir="./results",
-            per_device_train_batch_size=2,
+            per_device_train_batch_size=1,  # Smaller batch size to reduce memory usage
+            gradient_accumulation_steps=8,  # Accumulate gradients to simulate larger batch size
+            fp16=True,  # Use mixed precision training
+            dataloader_num_workers=1,  # Limit number of workers for data loading
             num_train_epochs=1,
             logging_dir='./logs',
             remove_unused_columns=False
@@ -99,8 +106,8 @@ class LLMService:
         clean_code = ' '.join(list(dict.fromkeys(generated_code.split())))  # Remove duplicates
         # Simple regex to retain only Python-like code snippets
         code_lines = clean_code.splitlines()
-        code_lines = [line for line in code_lines if
-                      re.match(r'^\s*def\s+\w+\(.*\):', line) or line.strip().startswith("import")]
+        # code_lines = [line for line in code_lines if
+        #               re.match(r'^\s*def\s+\w+\(.*\):', line) or line.strip().startswith("import")]
         return "\n".join(code_lines).strip()
 
 

@@ -20,4 +20,5 @@ def create_prompt_response_pairs(code_snippets):
             prompt = f"Write a function called {func}.\n\nDocumentation:\n{doc}"
             response = code
             pairs.append({"prompt": prompt, "response": response})
+            print(f'{"prompt": prompt, "response": response}')
     return pairs
